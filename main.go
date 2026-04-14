@@ -11,6 +11,7 @@ import (
 
 var boldStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA"))
 var titleStyle = boldStyle.AlignHorizontal(lipgloss.Center)
+var errorStyle = lipgloss.NewStyle().Foreground((lipgloss.Color("#ED4337")))
 
 // These imports will be used later in the tutorial. If you save the file
 // now, Go might complain they are unused, but that's fine.
@@ -68,6 +69,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "enter", "space":
 			if (m.state == titleView) {
+				m.title.errorMessage = ""
 				switch choice := m.title.choices[m.title.selected]; choice {
 				case "Quit":
 					return m, tea.Quit
@@ -75,7 +77,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if (len(m.lists.lists) > 0) {
 						m.state = listView
 					} else {
-						// TODO: Show warning
+						m.title.errorMessage = "No file tracked, please add file"
 					}
 				case "Add File":
 					m.state = listView;
@@ -111,7 +113,10 @@ func (m model) View() tea.View {
 			
 			
 		}
-		s += optionLine.String() + "\n"
+		s += optionLine.String() + "\n\n"
+		if (m.title.errorMessage != "") {
+			s += errorStyle.Render(m.title.errorMessage)
+		}
 		centeredContent := lipgloss.Place(
 			m.width,   // The total width of your terminal
 			m.height,  // The total height of your terminal

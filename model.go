@@ -39,6 +39,7 @@ type inputModel struct {
 type titleModel struct {
 	choices []string
 	selected int
+	errorMessage string
 }
 
 type File struct {

@@ -8,7 +8,6 @@ import (
 	lipgloss "charm.land/lipgloss/v2"
 )
 
-
 func (m *inputModel) updateInputs(msg tea.Msg) tea.Cmd {
 	cmds := make([]tea.Cmd, len(m.inputs))
 
@@ -22,18 +21,18 @@ func (m *inputModel) updateInputs(msg tea.Msg) tea.Cmd {
 }
 
 func (m *inputModel) resetInput() {
-    // Reset the focus to the first element
-    m.focusIndex = 0
-    m.isSave = true
+	// Reset the focus to the first element
+	m.focusIndex = 0
+	m.isSave = true
 
-    // Clear all text inputs
-    for i := range m.inputs {
-        m.inputs[i].SetValue("")
-        m.inputs[i].Blur()
-    }
-    
-    // Refocus the first input specifically
-    m.inputs[0].Focus()
+	// Clear all text inputs
+	for i := range m.inputs {
+		m.inputs[i].SetValue("")
+		m.inputs[i].Blur()
+	}
+
+	// Refocus the first input specifically
+	m.inputs[0].Focus()
 }
 
 func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
@@ -46,8 +45,8 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) 
 		if m.input.focusIndex < len(m.input.inputs) {
 			m.input.focusIndex++
 			movedIndex = true
-		} else if (keyPress != "down") {
-			if (m.input.isSave) {
+		} else if keyPress != "down" {
+			if m.input.isSave {
 
 			} else {
 				m.input.resetInput() // <--- Reset the fields
@@ -65,7 +64,7 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) 
 			m.input.isSave = !m.input.isSave
 		}
 	}
-	if (movedIndex) {
+	if movedIndex {
 		cmds := make([]tea.Cmd, len(m.input.inputs))
 		for i := 0; i <= len(m.input.inputs)-1; i++ {
 			if i == m.input.focusIndex {
@@ -79,7 +78,6 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) 
 	cmd := m.input.updateInputs(msg)
 	return m, cmd
 }
-
 
 func (m *inputModel) render(width int, height int) tea.View {
 	var b strings.Builder
@@ -110,10 +108,9 @@ func (m *inputModel) render(width int, height int) tea.View {
 	}
 	fmt.Fprintf(&b, "\n\n%s  %s\n\n", *saveButton, *discardButton)
 
-
 	centeredContent := lipgloss.Place(
-		width,   
-		height, 
+		width,
+		height,
 		lipgloss.Top,
 		lipgloss.Left,
 		b.String(),

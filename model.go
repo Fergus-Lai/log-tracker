@@ -35,9 +35,11 @@ type listModel struct {
 }
 
 type inputModel struct {
-	focusIndex int
-	inputs     []textinput.Model
-	isSave     bool
+	focusIndex   int
+	inputs       []textinput.Model
+	isSave       bool
+	errorMessage string
+	saving       bool
 }
 
 type titleModel struct {

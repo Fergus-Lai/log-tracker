@@ -55,6 +55,7 @@ func initialModel() model {
 		input: inputModel{
 			inputs: make([]textinput.Model, 4),
 			isSave: true,
+			saving: false,
 		},
 	}
 
@@ -144,6 +145,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		m.lists.lists = msg.lists
+	case fileSavedMsg:
+		m.lists.lists = append(m.lists.lists, listModel{
+			File: msg.file,
+		})
+		m.input.resetInput()
+		m.state = titleView
+		return m, nil
+	case saveErrMsg:
+		if msg.err.Error() == "Duplicate Error" {
+			m.input.errorMessage = "Profile with same name alreadt exists, please try again"
+		} else {
+			m.input.errorMessage = "Unable to save file, please try again"
+		}
+		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -180,7 +195,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		case inputView:
-			m.handleInputViewUpdate(msg)
+			return m.handleInputViewUpdate(msg)
 		}
 
 	}

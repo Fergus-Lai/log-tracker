@@ -1,9 +1,15 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"slices"
 	"strings"
 
+	textinput "charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	lipgloss "charm.land/lipgloss/v2"
 )
@@ -24,6 +30,7 @@ func (m *inputModel) resetInput() {
 	// Reset the focus to the first element
 	m.focusIndex = 0
 	m.isSave = true
+	m.saving = false
 
 	// Clear all text inputs
 	for i := range m.inputs {
@@ -46,8 +53,16 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) 
 			m.input.focusIndex++
 			movedIndex = true
 		} else if keyPress != "down" {
+			if m.input.saving {
+				return m, nil
+			}
 			if m.input.isSave {
-
+				if slices.ContainsFunc(m.input.inputs, func(n textinput.Model) bool { return n.Value() == "" }) {
+					m.input.errorMessage = "Missing field"
+					return m, nil
+				}
+				m.input.saving = true
+				return m, m.saveInput(m.input.inputs[0].Value(), m.input.inputs[1].Value(), m.input.inputs[2].Value(), m.input.inputs[3].Value())
 			} else {
 				m.input.resetInput() // <--- Reset the fields
 				m.state = titleView
@@ -108,6 +123,14 @@ func (m *inputModel) render(width int, height int) tea.View {
 	}
 	fmt.Fprintf(&b, "\n\n%s  %s\n\n", *saveButton, *discardButton)
 
+	if m.errorMessage != "" {
+		b.WriteString(errorStyle.Render(m.errorMessage))
+	}
+
+	if m.saving {
+		b.WriteString("Saving...\n")
+	}
+
 	centeredContent := lipgloss.Place(
 		width,
 		height,
@@ -118,4 +141,44 @@ func (m *inputModel) render(width int, height int) tea.View {
 	v := tea.NewView(centeredContent)
 	v.Cursor = c
 	return v
+}
+
+type saveErrMsg struct {
+	err error
+}
+type fileSavedMsg struct{ file File }
+
+func (m *model) saveInput(name string, folderPath string, fileNameMatcher string, formatter string) tea.Cmd {
+	return func() tea.Msg {
+		safeName := convertSafeName(name)
+
+		if slices.ContainsFunc(m.lists.lists, func(n listModel) bool {
+			return convertSafeName(n.File.Name) == safeName
+		}) {
+			return saveErrMsg{err: errors.New("Duplicate Error")}
+		}
+		newFile := File{
+			Name:           name,
+			FolderPath:     folderPath,
+			FileNameString: fileNameMatcher,
+			Formatter:      formatter,
+		}
+
+		data, err := json.MarshalIndent(newFile, "", "  ")
+		if err != nil {
+			return saveErrMsg{err} // Define a custom error msg type
+		}
+
+		filePath := filepath.Join(DATA_PATH, safeName+".json")
+		err = os.WriteFile(filePath, data, 0644)
+		if err != nil {
+			return saveErrMsg{err}
+		}
+
+		return fileSavedMsg{newFile}
+	}
+}
+
+func convertSafeName(s string) string {
+	return strings.ReplaceAll(strings.ToLower(s), " ", "_")
 }

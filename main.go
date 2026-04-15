@@ -1,8 +1,13 @@
 package main
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
+	"path"
+	"path/filepath"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
@@ -12,6 +17,8 @@ import (
 var boldStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA"))
 var titleStyle = boldStyle.AlignHorizontal(lipgloss.Center)
 var errorStyle = lipgloss.NewStyle().Foreground((lipgloss.Color("#ED4337")))
+
+var DATA_PATH =  filepath.Join(".", "data")
 
 // These imports will be used later in the tutorial. If you save the file
 // now, Go might complain they are unused, but that's fine.
@@ -30,25 +37,66 @@ func initialModel() model {
 			selectedIndex: 0,
 		},
 		input: inputModel{
-			file: File{
-				name: "",
-				folderPath: "",
-				fileNameString: "",
-				data: []RowData{},
-				formatter: "",
+			File: File{
+				Name: "",
+				FolderPath: "",
+				FileNameString: "",
+				Data: []RowData{},
+				Formatter: "",
 			},
 		},
 	}
 }
 
+func LoadData() tea.Msg {
+	var loadedLists []listModel
+    
+    // Ensure directory exists
+    if _, err := os.Stat(DATA_PATH); errors.Is(err, fs.ErrNotExist) {
+        os.Mkdir(DATA_PATH, os.ModePerm)
+    }
+
+    files, err := os.ReadDir(DATA_PATH)
+    if err != nil {
+        return dataLoadedMsg{err: err}
+    }
+
+    for _, file := range files {
+        if file.IsDir() { continue }
+
+        data, err := os.ReadFile(path.Join(DATA_PATH, file.Name()))
+        if err != nil { continue }
+
+        var f File
+        if err := json.Unmarshal(data, &f); err != nil { continue }
+
+        loadedLists = append(loadedLists, listModel{
+            File:   f,
+            Cursor: 0,
+			Filter: Filter{
+				searchString: "",
+				regexOn: false,
+				level: "",
+			},
+        })
+    }
+
+    return dataLoadedMsg{lists: loadedLists}
+}
+
 
 func (m model) Init() tea.Cmd {
-	// TODO: Read the files
-	return nil
+	return LoadData
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case dataLoadedMsg:
+		if msg.err != nil {
+            // Error handle
+            return m, tea.Quit
+        }
+        m.lists.lists = msg.lists
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -85,17 +133,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			} 
 		}
 	}
-	switch state := m.state; state {
-	case titleView:
-
-
-	// case listView:
-	// 	return m, nil;
-	// case inputView:
-	// 	return m, nil;
-	}
-    // Return the updated model to the Bubble Tea runtime for processing.
-    // Note that we're not returning a command.
     return m, nil
 }
 

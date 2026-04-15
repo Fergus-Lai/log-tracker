@@ -13,27 +13,27 @@ const (
 )
 
 type model struct {
-	state ViewState;
-	lists listsModel;
-	input inputModel;
-	title titleModel;
-	width  int;
-    height int;
+	state ViewState
+	lists listsModel
+	input inputModel
+	title titleModel
+	width  int
+    height int
 }
 
 type listsModel struct {
-	lists []listModel;
-	selectedIndex uint;
+	lists []listModel
+	selectedIndex uint 
 }
 
 type listModel struct {
-	file File;
-	filter Filter;
-	cursor int
+	File File
+	Filter Filter
+	Cursor int
 }
 
 type inputModel struct {
-	file File
+	File File
 }
 
 type titleModel struct {
@@ -43,23 +43,26 @@ type titleModel struct {
 }
 
 type File struct {
-	name string;
-	folderPath string;
-	fileNameString string;
-	data []RowData;
-	formatter string;
+	Name string `json:"name"`
+	FolderPath string `json:"folderPath"`
+	FileNameString string `json:"fileNameMatch"`
+	Formatter string `json:"formatter"`
+	Data []RowData
 }
 
 type RowData struct {
-	level string;
-	timeStamp time.Time;
-	message string;
+	level string
+	timeStamp time.Time
+	message string
 }
 
 type Filter struct {
-	searchString string;
-	regexOn bool;
-	level string;
-	timeStampStart time.Time;
-	timeStampEnd time.Time;
+	searchString string
+	regexOn bool
+	level string
+}
+
+type dataLoadedMsg struct {
+    lists []listModel
+    err   error
 }

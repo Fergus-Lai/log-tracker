@@ -15,11 +15,10 @@ import (
 	lipgloss "charm.land/lipgloss/v2"
 )
 
-var boldStyle = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA"))
-var titleStyle = boldStyle.AlignHorizontal(lipgloss.Center)
-var errorStyle = lipgloss.NewStyle().Foreground((lipgloss.Color("#ED4337")))
-
 var (
+	boldStyle           = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA"))
+	titleStyle          = boldStyle.AlignHorizontal(lipgloss.Center)
+	errorStyle          = lipgloss.NewStyle().Foreground((lipgloss.Color("#ED4337")))
 	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 	cursorStyle         = focusedStyle
@@ -158,10 +157,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.input.errorMessage = "Unable to save file, please try again"
 		}
+		m.input.saving = false
 		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+	case tea.MouseClickMsg:
+		if msg.Button == tea.MouseRight && m.state == inputView {
+			m.input.pasteCurrent()
+		}
 	case tea.KeyPressMsg:
 		switch m.state {
 		case titleView:

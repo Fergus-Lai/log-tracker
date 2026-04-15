@@ -15,24 +15,11 @@ import (
 )
 
 var (
-	boldStyle           = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA"))
-	titleStyle          = boldStyle.AlignHorizontal(lipgloss.Center)
-	errorStyle          = lipgloss.NewStyle().Foreground((lipgloss.Color("#ED4337")))
-	focusedStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
-	blurredStyle        = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	cursorStyle         = focusedStyle
-	noStyle             = lipgloss.NewStyle()
-	helpStyle           = blurredStyle
-	cursorModeHelpStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("244"))
-
-	focusedSave = focusedStyle.Render("[ Save ]")
-	blurredSave = fmt.Sprintf("[ %s ]", blurredStyle.Render("Save"))
-
-	focusedDiscard = focusedStyle.Render("[ Discard ]")
-	blurredDiscard = fmt.Sprintf("[ %s ]", blurredStyle.Render("Discard"))
-
-	focusedDelete = focusedStyle.Render("[ Delete ]")
-	blurredDelete = fmt.Sprintf("[ %s ]", blurredStyle.Render("Delete"))
+	boldStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA"))
+	titleStyle   = boldStyle.AlignHorizontal(lipgloss.Center)
+	errorStyle   = lipgloss.NewStyle().Foreground((lipgloss.Color("#ED4337")))
+	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 )
 
 var DATA_PATH = filepath.Join(".", "data")

@@ -67,15 +67,15 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg, isEdit bool) (tea.Mod
 			if inputMod.inProgress {
 				return m, nil
 			}
-			switch inputMod.activeIndex {
-			case 0:
+			switch inputMod.choices[inputMod.activeIndex] {
+			case "Save":
 				if slices.ContainsFunc(inputMod.inputs, func(n textinput.Model) bool { return n.Value() == "" }) {
 					inputMod.errorMessage = "Missing field"
 					return m, nil
 				}
 				inputMod.inProgress = true
 				return m, m.saveInput(inputMod.inputs[0].Value(), inputMod.inputs[1].Value(), inputMod.inputs[2].Value(), inputMod.inputs[3].Value(), isEdit)
-			case 1:
+			case "Discard":
 				inputMod.resetInput()
 				if isEdit {
 					m.edit.editMode = false
@@ -83,7 +83,7 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg, isEdit bool) (tea.Mod
 					m.state = titleView
 				}
 				return m, nil
-			case 2:
+			case "Delete":
 				inputMod.inProgress = true
 				return m, m.delete()
 			}
@@ -95,20 +95,13 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg, isEdit bool) (tea.Mod
 		}
 	case "left":
 		if inputMod.focusIndex == len(inputMod.inputs) {
-			if isEdit {
-				// TODO: Refactor to use choices like title
-				inputMod.activeIndex = ((inputMod.activeIndex-1)%3 + 3) % 3
-			} else {
-				inputMod.activeIndex = ((inputMod.activeIndex-1)%2 + 2) % 2
-			}
+			n := len(inputMod.choices)
+			inputMod.activeIndex = ((inputMod.activeIndex-1)%n + n) % n
 		}
 	case "right":
 		if inputMod.focusIndex == len(inputMod.inputs) {
-			if isEdit {
-				inputMod.activeIndex = (inputMod.activeIndex + 1) % 3
-			} else {
-				inputMod.activeIndex = (inputMod.activeIndex + 1) % 2
-			}
+			n := len(inputMod.choices)
+			inputMod.activeIndex = ((inputMod.activeIndex+1)%n + n) % n
 		}
 	}
 	if movedIndex {
@@ -149,34 +142,24 @@ func (m *inputModel) render(width int, height int, isEdit bool) tea.View {
 		}
 	}
 
-	saveButton := &blurredSave
-	if m.focusIndex == len(m.inputs) && m.activeIndex == 0 {
-		saveButton = &focusedSave
-	}
-	discardButton := &blurredDiscard
-	if m.focusIndex == len(m.inputs) && m.activeIndex == 1 {
-		discardButton = &focusedDiscard
-	}
-
-	if isEdit {
-		deleteButton := &blurredDelete
-		if m.focusIndex == len(m.inputs) && m.activeIndex == 2 {
-			deleteButton = &focusedDelete
+	b.WriteString("\n\n")
+	for i, button := range m.choices {
+		style := blurredStyle
+		if i == m.activeIndex {
+			style = focusedStyle
 		}
-		fmt.Fprintf(&b, "\n\n%s  %s  %s\n\n", *saveButton, *discardButton, *deleteButton)
-	} else {
-		fmt.Fprintf(&b, "\n\n%s  %s\n\n", *saveButton, *discardButton)
+		b.WriteString(style.Render(fmt.Sprintf("  [%s]", button)))
 	}
 
 	if m.errorMessage != "" {
 		b.WriteString(errorStyle.Render(m.errorMessage))
 	}
 
-	if m.inProgress && m.activeIndex == 0 {
+	if m.inProgress && m.choices[m.activeIndex] == "Save" {
 		b.WriteString("Saving...\n")
 	}
 
-	if m.inProgress && m.activeIndex == 2 {
+	if m.inProgress && m.choices[m.activeIndex] == "Delete" {
 		b.WriteString("Deleting...\n")
 	}
 

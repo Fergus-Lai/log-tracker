@@ -39,6 +39,7 @@ type listModel struct {
 type inputModel struct {
 	focusIndex   int
 	inputs       []textinput.Model
+	choices      []string
 	activeIndex  int
 	errorMessage string
 	inProgress   bool

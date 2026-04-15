@@ -56,12 +56,14 @@ func initialModel() model {
 		},
 		input: inputModel{
 			inputs:      make([]textinput.Model, 4),
+			choices:     []string{"Save", "Discard"},
 			activeIndex: 0,
 			inProgress:  false,
 		},
 		edit: editModel{
 			input: inputModel{
 				inputs:      make([]textinput.Model, 4),
+				choices:     []string{"Save", "Discard", "Delete"},
 				activeIndex: 0,
 				inProgress:  false,
 			},

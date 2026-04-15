@@ -8,7 +8,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
 
 	textinput "charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
@@ -243,37 +242,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyPressMsg:
 		switch m.state {
 		case titleView:
-			switch msg.String() {
-			case "ctrl+c", "q":
-				return m, tea.Quit
-
-			case "left":
-				if m.state == titleView && m.title.selected > 0 {
-					m.title.selected--
-				}
-
-			case "right":
-				if m.state == titleView && m.title.selected < len(m.title.choices)-1 {
-					m.title.selected++
-				}
-
-			case "enter", "space":
-				m.title.errorMessage = ""
-				switch choice := m.title.choices[m.title.selected]; choice {
-				case "Quit":
-					return m, tea.Quit
-				case "View Logs":
-					if len(m.lists.lists) > 0 {
-						m.state = listView
-					} else {
-						m.title.errorMessage = "No file tracked, please add file"
-					}
-				case "Add Log Profile":
-					m.state = inputView
-				case "Edit Log Profile":
-					m.state = editView
-				}
-			}
+			return m.handleTitleInput(msg)
 		case inputView:
 			return m.handleInputViewUpdate(msg, false)
 		case editView:
@@ -290,28 +259,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m model) View() tea.View {
 	switch m.state {
 	case titleView:
-		s := titleStyle.Render("Log Viewer by Fergus") + "\n\n"
-		var optionLine strings.Builder
-		for i, choice := range m.title.choices {
-			if m.title.selected == i {
-				optionLine.WriteString(boldStyle.Render(fmt.Sprintf("[x] %s  ", choice)))
-			} else {
-				fmt.Fprintf(&optionLine, "[ ] %s  ", choice)
-			}
-
-		}
-		s += optionLine.String() + "\n\n"
-		if m.title.errorMessage != "" {
-			s += errorStyle.Render(m.title.errorMessage)
-		}
-		centeredContent := lipgloss.Place(
-			m.width,  // The total width of your terminal
-			m.height, // The total height of your terminal
-			lipgloss.Center,
-			lipgloss.Center,
-			s,
-		)
-		return tea.NewView(centeredContent)
+		return m.title.render(m.width, m.height)
 	case listView:
 		return tea.NewView("List")
 	case inputView:

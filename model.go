@@ -2,6 +2,8 @@ package main
 
 import (
 	"time"
+
+	textinput "charm.land/bubbles/v2/textinput"
 )
 
 type ViewState uint
@@ -33,7 +35,9 @@ type listModel struct {
 }
 
 type inputModel struct {
-	File File
+	focusIndex int
+	inputs     []textinput.Model
+	isSave bool
 }
 
 type titleModel struct {

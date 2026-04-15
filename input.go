@@ -145,7 +145,7 @@ func (m *inputModel) render(width int, height int, isEdit bool) tea.View {
 	b.WriteString("\n\n")
 	for i, button := range m.choices {
 		style := blurredStyle
-		if i == m.activeIndex {
+		if i == m.activeIndex && m.focusIndex == len(m.inputs) {
 			style = focusedStyle
 		}
 		b.WriteString(style.Render(fmt.Sprintf("  [%s]", button)))

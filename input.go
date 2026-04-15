@@ -31,8 +31,8 @@ func (m *inputModel) updateInputs(msg tea.Msg) tea.Cmd {
 func (m *inputModel) resetInput() {
 	// Reset the focus to the first element
 	m.focusIndex = 0
-	m.isSave = true
-	m.saving = false
+	m.activeIndex = 0
+	m.inProgress = false
 
 	// Clear all text inputs
 	for i := range m.inputs {
@@ -44,65 +44,96 @@ func (m *inputModel) resetInput() {
 	m.inputs[0].Focus()
 }
 
-func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg, isEdit bool) (tea.Model, tea.Cmd) {
 	movedIndex := false
 	keyPress := msg.String()
+	var inputMod *inputModel
+	if isEdit {
+		inputMod = &m.edit.input
+	} else {
+		inputMod = &m.input
+	}
 	switch keyPress {
 	case "ctrl+v":
-		m.input.pasteCurrent()
+		inputMod.pasteCurrent()
 		return m, nil
 	case "ctrl+c":
 		return m, tea.Quit
 	case "enter", "down", "tab":
-		if m.input.focusIndex < len(m.input.inputs) {
-			m.input.focusIndex++
+		if inputMod.focusIndex < len(inputMod.inputs) {
+			inputMod.focusIndex++
 			movedIndex = true
 		} else if keyPress != "down" {
-			if m.input.saving {
+			if inputMod.inProgress {
 				return m, nil
 			}
-			if m.input.isSave {
-				if slices.ContainsFunc(m.input.inputs, func(n textinput.Model) bool { return n.Value() == "" }) {
-					m.input.errorMessage = "Missing field"
+			switch inputMod.activeIndex {
+			case 0:
+				if slices.ContainsFunc(inputMod.inputs, func(n textinput.Model) bool { return n.Value() == "" }) {
+					inputMod.errorMessage = "Missing field"
 					return m, nil
 				}
-				m.input.saving = true
-				return m, m.saveInput(m.input.inputs[0].Value(), m.input.inputs[1].Value(), m.input.inputs[2].Value(), m.input.inputs[3].Value())
-			} else {
-				m.input.resetInput() // <--- Reset the fields
-				m.state = titleView
+				inputMod.inProgress = true
+				return m, m.saveInput(inputMod.inputs[0].Value(), inputMod.inputs[1].Value(), inputMod.inputs[2].Value(), inputMod.inputs[3].Value(), isEdit)
+			case 1:
+				inputMod.resetInput()
+				if isEdit {
+					m.edit.editMode = false
+				} else {
+					m.state = titleView
+				}
 				return m, nil
+			case 2:
+				inputMod.inProgress = true
+				return m, m.delete()
 			}
 		}
 	case "shift+tab", "up":
-		if m.input.focusIndex > 0 {
-			m.input.focusIndex--
+		if inputMod.focusIndex > 0 {
+			inputMod.focusIndex--
 			movedIndex = true
 		}
-	case "left", "right":
-		if m.input.focusIndex == len(m.input.inputs) {
-			m.input.isSave = !m.input.isSave
+	case "left":
+		if inputMod.focusIndex == len(inputMod.inputs) {
+			if isEdit {
+				// TODO: Refactor to use choices like title
+				inputMod.activeIndex = ((inputMod.activeIndex-1)%3 + 3) % 3
+			} else {
+				inputMod.activeIndex = ((inputMod.activeIndex-1)%2 + 2) % 2
+			}
+		}
+	case "right":
+		if inputMod.focusIndex == len(inputMod.inputs) {
+			if isEdit {
+				inputMod.activeIndex = (inputMod.activeIndex + 1) % 3
+			} else {
+				inputMod.activeIndex = (inputMod.activeIndex + 1) % 2
+			}
 		}
 	}
 	if movedIndex {
-		cmds := make([]tea.Cmd, len(m.input.inputs))
-		for i := 0; i <= len(m.input.inputs)-1; i++ {
-			if i == m.input.focusIndex {
-				cmds[i] = m.input.inputs[i].Focus()
+		cmds := make([]tea.Cmd, len(inputMod.inputs))
+		for i := 0; i <= len(inputMod.inputs)-1; i++ {
+			if i == inputMod.focusIndex {
+				cmds[i] = inputMod.inputs[i].Focus()
 				continue
 			}
-			m.input.inputs[i].Blur()
+			inputMod.inputs[i].Blur()
 		}
 		return m, tea.Batch(cmds...)
 	}
-	cmd := m.input.updateInputs(msg)
+	cmd := inputMod.updateInputs(msg)
 	return m, cmd
 }
 
-func (m *inputModel) render(width int, height int) tea.View {
+func (m *inputModel) render(width int, height int, isEdit bool) tea.View {
 	var b strings.Builder
 	var c *tea.Cursor
-	b.WriteString(boldStyle.Render("Create Log Profile \n"))
+	if isEdit {
+		b.WriteString(boldStyle.Render("Edit Log Profile \n"))
+	} else {
+		b.WriteString(boldStyle.Render("Create Log Profile \n"))
+	}
 	b.WriteRune('\n')
 	for i, in := range m.inputs {
 		b.WriteString(m.inputs[i].View())
@@ -119,21 +150,34 @@ func (m *inputModel) render(width int, height int) tea.View {
 	}
 
 	saveButton := &blurredSave
-	if m.focusIndex == len(m.inputs) && m.isSave {
+	if m.focusIndex == len(m.inputs) && m.activeIndex == 0 {
 		saveButton = &focusedSave
 	}
 	discardButton := &blurredDiscard
-	if m.focusIndex == len(m.inputs) && !m.isSave {
+	if m.focusIndex == len(m.inputs) && m.activeIndex == 1 {
 		discardButton = &focusedDiscard
 	}
-	fmt.Fprintf(&b, "\n\n%s  %s\n\n", *saveButton, *discardButton)
+
+	if isEdit {
+		deleteButton := &blurredDelete
+		if m.focusIndex == len(m.inputs) && m.activeIndex == 2 {
+			deleteButton = &focusedDelete
+		}
+		fmt.Fprintf(&b, "\n\n%s  %s  %s\n\n", *saveButton, *discardButton, *deleteButton)
+	} else {
+		fmt.Fprintf(&b, "\n\n%s  %s\n\n", *saveButton, *discardButton)
+	}
 
 	if m.errorMessage != "" {
 		b.WriteString(errorStyle.Render(m.errorMessage))
 	}
 
-	if m.saving {
+	if m.inProgress && m.activeIndex == 0 {
 		b.WriteString("Saving...\n")
+	}
+
+	if m.inProgress && m.activeIndex == 2 {
+		b.WriteString("Deleting...\n")
 	}
 
 	centeredContent := lipgloss.Place(
@@ -150,18 +194,25 @@ func (m *inputModel) render(width int, height int) tea.View {
 }
 
 type saveErrMsg struct {
-	err error
+	err    error
+	isEdit bool
 }
-type fileSavedMsg struct{ file File }
+type fileSavedMsg struct {
+	file   File
+	isEdit bool
+}
 
-func (m *model) saveInput(name string, folderPath string, fileNameMatcher string, formatter string) tea.Cmd {
+func (m *model) saveInput(name string, folderPath string, fileNameMatcher string, formatter string, isEdit bool) tea.Cmd {
 	return func() tea.Msg {
 		safeName := convertSafeName(name)
 
-		if slices.ContainsFunc(m.files, func(f File) bool {
-			return convertSafeName(f.Name) == safeName
-		}) {
-			return saveErrMsg{err: errors.New("Duplicate Error")}
+		for i, f := range m.files {
+			if convertSafeName(f.Name) == safeName && (!isEdit || m.edit.selectedIndex != i) {
+				return saveErrMsg{
+					err:    errors.New("Duplicate Error"),
+					isEdit: isEdit,
+				}
+			}
 		}
 		newFile := File{
 			Name:           name,
@@ -172,16 +223,36 @@ func (m *model) saveInput(name string, folderPath string, fileNameMatcher string
 
 		data, err := json.MarshalIndent(newFile, "", "  ")
 		if err != nil {
-			return saveErrMsg{err} // Define a custom error msg type
+			return saveErrMsg{
+				err,
+				isEdit,
+			}
+		}
+
+		if isEdit && m.files[m.edit.selectedIndex].Name != name {
+			err = os.Remove(filepath.Join(DATA_PATH, convertSafeName(m.files[m.edit.selectedIndex].Name)+".json"))
+			if err != nil {
+				return saveErrMsg{
+					err,
+					isEdit,
+				}
+			}
 		}
 
 		filePath := filepath.Join(DATA_PATH, safeName+".json")
+
 		err = os.WriteFile(filePath, data, 0644)
 		if err != nil {
-			return saveErrMsg{err}
+			return saveErrMsg{
+				err,
+				isEdit,
+			}
 		}
 
-		return fileSavedMsg{newFile}
+		return fileSavedMsg{
+			file:   newFile,
+			isEdit: isEdit,
+		}
 	}
 }
 

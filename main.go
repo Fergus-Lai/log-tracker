@@ -31,6 +31,9 @@ var (
 
 	focusedDiscard = focusedStyle.Render("[ Discard ]")
 	blurredDiscard = fmt.Sprintf("[ %s ]", blurredStyle.Render("Discard"))
+
+	focusedDelete = focusedStyle.Render("[ Delete ]")
+	blurredDelete = fmt.Sprintf("[ %s ]", blurredStyle.Render("Delete"))
 )
 
 var DATA_PATH = filepath.Join(".", "data")
@@ -44,7 +47,7 @@ func initialModel() model {
 	m := model{
 		state: 0,
 		title: titleModel{
-			choices:  []string{"Add File", "View Files", "Quit"},
+			choices:  []string{"Add Log Profile", "Edit Log Profile", "View Logs", "Quit"},
 			selected: 0,
 		},
 		lists: listsModel{
@@ -52,13 +55,51 @@ func initialModel() model {
 			selectedIndex: 0,
 		},
 		input: inputModel{
-			inputs: make([]textinput.Model, 4),
-			isSave: true,
-			saving: false,
+			inputs:      make([]textinput.Model, 4),
+			activeIndex: 0,
+			inProgress:  false,
+		},
+		edit: editModel{
+			input: inputModel{
+				inputs:      make([]textinput.Model, 4),
+				activeIndex: 0,
+				inProgress:  false,
+			},
+			editMode:      false,
+			selectedIndex: 0,
 		},
 	}
 
 	var t textinput.Model
+	for i := range m.edit.input.inputs {
+		t = textinput.New()
+		t.CharLimit = 256
+		t.SetWidth(256)
+
+		s := t.Styles()
+		s.Cursor.Color = lipgloss.Color("205")
+		s.Focused.Prompt = focusedStyle
+		s.Focused.Text = focusedStyle
+		s.Blurred.Prompt = blurredStyle
+		s.Focused.Text = focusedStyle
+		t.SetStyles(s)
+
+		switch i {
+		case 0:
+			t.Placeholder = "Name"
+			t.CharLimit = 64
+			t.Focus()
+		case 1:
+			t.Placeholder = "Folder Path"
+		case 2:
+			t.Placeholder = "File Matching String"
+		case 3:
+			t.Placeholder = "Log Format Matcher (Regex)"
+		}
+
+		m.edit.input.inputs[i] = t
+	}
+
 	for i := range m.input.inputs {
 		t = textinput.New()
 		t.CharLimit = 256
@@ -149,25 +190,46 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.lists.lists = listModels
 	case fileSavedMsg:
-		m.files = append(m.files, msg.file)
-		m.lists.lists = append(m.lists.lists, listModel{
-			Cursor: 0,
-			Filter: Filter{
-				searchString: "",
-				regexOn:      false,
-				level:        "",
-			},
-		})
-		m.input.resetInput()
-		m.state = titleView
+		if msg.isEdit {
+			m.files[m.edit.selectedIndex] = msg.file
+			m.edit.input.resetInput()
+			m.edit.editMode = false
+		} else {
+			m.files = append(m.files, msg.file)
+			m.lists.lists = append(m.lists.lists, listModel{
+				Cursor: 0,
+				Filter: Filter{
+					searchString: "",
+					regexOn:      false,
+					level:        "",
+				},
+			})
+			m.input.resetInput()
+			m.state = titleView
+		}
 		return m, nil
 	case saveErrMsg:
-		if msg.err.Error() == "Duplicate Error" {
-			m.input.errorMessage = "Profile with same name alreadt exists, please try again"
+		var inputMod *inputModel
+		if msg.isEdit {
+			inputMod = &m.edit.input
 		} else {
-			m.input.errorMessage = "Unable to save file, please try again"
+			inputMod = &m.input
 		}
-		m.input.saving = false
+		switch msg.err.Error() {
+		case "Duplicate Error":
+			inputMod.errorMessage = "Profile with same name alreadt exists, please try again"
+		case "Unable to delete":
+			inputMod.errorMessage = "Unable to delete file, please try again"
+		default:
+			inputMod.errorMessage = "Unable to save file, please try again"
+		}
+		inputMod.inProgress = false
+		return m, nil
+	case fileDeletedMsg:
+		m.edit.input.inProgress = false
+		m.edit.input.resetInput()
+		m.files = append(m.files[:msg.index], m.files[msg.index+1:]...)
+		m.edit.editMode = false
 		return m, nil
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -198,18 +260,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch choice := m.title.choices[m.title.selected]; choice {
 				case "Quit":
 					return m, tea.Quit
-				case "View Files":
+				case "View Logs":
 					if len(m.lists.lists) > 0 {
 						m.state = listView
 					} else {
 						m.title.errorMessage = "No file tracked, please add file"
 					}
-				case "Add File":
+				case "Add Log Profile":
 					m.state = inputView
+				case "Edit Log Profile":
+					m.state = editView
 				}
 			}
 		case inputView:
-			return m.handleInputViewUpdate(msg)
+			return m.handleInputViewUpdate(msg, false)
+		case editView:
+			if m.edit.editMode {
+				return m.handleInputViewUpdate(msg, true)
+			}
+			return m.handleEditViewUpdate(msg)
 		}
 
 	}
@@ -244,7 +313,12 @@ func (m model) View() tea.View {
 	case listView:
 		return tea.NewView("List")
 	case inputView:
-		return m.input.render(m.width, m.height)
+		return m.input.render(m.width, m.height, false)
+	case editView:
+		if m.edit.editMode {
+			return m.edit.input.render(m.width, m.height, true)
+		}
+		return m.edit.render(m.width, m.height, m.files)
 	default:
 		return tea.NewView("Loading...")
 	}

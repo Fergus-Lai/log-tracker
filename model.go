@@ -12,6 +12,7 @@ const (
 	titleView ViewState = iota
 	listView
 	inputView
+	editView
 )
 
 type model struct {
@@ -19,6 +20,7 @@ type model struct {
 	lists  listsModel
 	input  inputModel
 	title  titleModel
+	edit   editModel
 	width  int
 	height int
 	files  []File
@@ -37,15 +39,21 @@ type listModel struct {
 type inputModel struct {
 	focusIndex   int
 	inputs       []textinput.Model
-	isSave       bool
+	activeIndex  int
 	errorMessage string
-	saving       bool
+	inProgress   bool
 }
 
 type titleModel struct {
 	choices      []string
 	selected     int
 	errorMessage string
+}
+
+type editModel struct {
+	selectedIndex int
+	editMode      bool
+	input         inputModel
 }
 
 type File struct {

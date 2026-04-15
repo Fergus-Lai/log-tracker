@@ -1,0 +1,104 @@
+package main
+
+import (
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
+	tea "charm.land/bubbletea/v2"
+	lipgloss "charm.land/lipgloss/v2"
+)
+
+func (m *editModel) render(width int, height int, files []File) tea.View {
+	var b strings.Builder
+	b.WriteString(boldStyle.Render("Edit Log Profile \n"))
+	b.WriteRune('\n')
+
+	for i, f := range files {
+		if m.selectedIndex == i {
+			b.WriteString(boldStyle.Render(fmt.Sprintf("[x] %s  ", f.Name)))
+		} else {
+			fmt.Fprintf(&b, "[ ] %s  ", f.Name)
+		}
+		b.WriteRune('\n')
+		b.WriteRune('\n')
+	}
+
+	if m.selectedIndex == len(files) {
+		b.WriteString(boldStyle.Render(fmt.Sprintf("[x] %s  ", "Return to home screen")))
+	} else {
+		fmt.Fprintf(&b, "[ ] %s  ", "Return to home screen")
+	}
+
+	centeredContent := lipgloss.Place(
+		width,  // The total width of your terminal
+		height, // The total height of your terminal
+		lipgloss.Top,
+		lipgloss.Left,
+		b.String(),
+	)
+	return tea.NewView(centeredContent)
+}
+
+func (m *model) handleEditViewUpdate(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
+	keyPress := msg.String()
+	switch keyPress {
+	case "ctrl+c", "q":
+		return m, tea.Quit
+	case "up", "shift+tab":
+		if m.edit.selectedIndex > 0 {
+			m.edit.selectedIndex--
+		}
+	case "down", "tab":
+		if m.edit.selectedIndex < len(m.files) {
+			m.edit.selectedIndex++
+		}
+	case "enter":
+		if m.edit.selectedIndex == len(m.files) {
+			m.state = titleView
+			m.edit.selectedIndex = 0
+		} else {
+
+			f := m.files[m.edit.selectedIndex]
+			for i := range m.edit.input.inputs {
+				switch i {
+				case 0:
+					m.edit.input.inputs[i].SetValue(f.Name)
+					m.edit.input.inputs[i].Focus()
+				case 1:
+					m.edit.input.inputs[i].SetValue(f.FolderPath)
+				case 2:
+					m.edit.input.inputs[i].SetValue(f.FileNameString)
+				case 3:
+					m.edit.input.inputs[i].SetValue(f.Formatter)
+				}
+			}
+			m.edit.editMode = true
+		}
+
+	}
+	return m, nil
+}
+
+type fileDeletedMsg struct {
+	index int
+}
+
+func (m *model) delete() tea.Cmd {
+	return func() tea.Msg {
+		safeName := convertSafeName(m.files[m.edit.selectedIndex].Name)
+		filePath := filepath.Join(DATA_PATH, safeName+".json")
+		err := os.Remove(filePath)
+		if err != nil {
+			return saveErrMsg{
+				err:    errors.New("Unable to delete"),
+				isEdit: true,
+			}
+		}
+		return fileDeletedMsg{
+			index: m.edit.selectedIndex,
+		}
+	}
+}

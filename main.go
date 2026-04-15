@@ -91,7 +91,7 @@ func initialModel() model {
 }
 
 func LoadData() tea.Msg {
-	var loadedLists []listModel
+	var loadedFiles []File
 
 	// Ensure directory exists
 	if _, err := os.Stat(DATA_PATH); errors.Is(err, fs.ErrNotExist) {
@@ -118,18 +118,10 @@ func LoadData() tea.Msg {
 			continue
 		}
 
-		loadedLists = append(loadedLists, listModel{
-			File:   f,
-			Cursor: 0,
-			Filter: Filter{
-				searchString: "",
-				regexOn:      false,
-				level:        "",
-			},
-		})
+		loadedFiles = append(loadedFiles, f)
 	}
 
-	return dataLoadedMsg{lists: loadedLists}
+	return dataLoadedMsg{files: loadedFiles}
 }
 
 func (m model) Init() tea.Cmd {
@@ -143,10 +135,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Error handle
 			return m, tea.Quit
 		}
-		m.lists.lists = msg.lists
+		m.files = msg.files
+		listModels := make([]listModel, len(m.files))
+		for i := range listModels {
+			listModels[i] = listModel{
+				Cursor: 0,
+				Filter: Filter{
+					searchString: "",
+					regexOn:      false,
+					level:        "",
+				},
+			}
+		}
+		m.lists.lists = listModels
 	case fileSavedMsg:
+		m.files = append(m.files, msg.file)
 		m.lists.lists = append(m.lists.lists, listModel{
-			File: msg.file,
+			Cursor: 0,
+			Filter: Filter{
+				searchString: "",
+				regexOn:      false,
+				level:        "",
+			},
 		})
 		m.input.resetInput()
 		m.state = titleView

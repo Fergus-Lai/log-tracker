@@ -21,6 +21,7 @@ type model struct {
 	title  titleModel
 	width  int
 	height int
+	files  []File
 }
 
 type listsModel struct {
@@ -29,7 +30,6 @@ type listsModel struct {
 }
 
 type listModel struct {
-	File   File
 	Filter Filter
 	Cursor int
 }
@@ -69,6 +69,6 @@ type Filter struct {
 }
 
 type dataLoadedMsg struct {
-	lists []listModel
+	files []File
 	err   error
 }

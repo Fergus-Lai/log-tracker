@@ -158,8 +158,8 @@ func (m *model) saveInput(name string, folderPath string, fileNameMatcher string
 	return func() tea.Msg {
 		safeName := convertSafeName(name)
 
-		if slices.ContainsFunc(m.lists.lists, func(n listModel) bool {
-			return convertSafeName(n.File.Name) == safeName
+		if slices.ContainsFunc(m.files, func(f File) bool {
+			return convertSafeName(f.Name) == safeName
 		}) {
 			return saveErrMsg{err: errors.New("Duplicate Error")}
 		}

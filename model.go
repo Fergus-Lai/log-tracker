@@ -29,11 +29,12 @@ type model struct {
 }
 
 type listsModel struct {
-	selected   []bool
-	focusedTab int // -1 for explorer
-	Filter     Filter
-	Cursor     int
-	command    textinput.Model
+	selected      []bool
+	selectedCount int
+	focusedTab    int // -1 for explorer
+	Filter        Filter
+	Cursor        int
+	command       textinput.Model
 }
 
 type inputModel struct {

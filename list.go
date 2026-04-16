@@ -13,6 +13,33 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	if keyPress == "ctrl+c" {
 		return m, tea.Quit
 	}
+	newIndex := m.lists.focusedTab
+	if keyPress == "tab" {
+		newIndex += 1
+		if newIndex >= m.lists.selectedCount {
+			newIndex = -2
+		}
+	}
+	if keyPress == "shift+tab" {
+		newIndex -= 1
+		if newIndex > -2 {
+			newIndex = m.lists.selectedCount - 1
+		}
+	}
+	if m.lists.focusedTab != newIndex {
+		// Reset
+		m.lists.Cursor = 0
+		if m.lists.focusedTab == -2 {
+			m.lists.command.Blur()
+		}
+
+		// Set New
+		if newIndex == -2 {
+			m.lists.command.Focus()
+		}
+		m.lists.focusedTab = newIndex
+		return m, nil
+	}
 	if m.lists.focusedTab == -1 {
 		switch keyPress {
 		case "up":
@@ -21,6 +48,11 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			m.lists.Cursor = positiveMod(m.lists.Cursor+1, len(m.lists.selected))
 		case "enter":
 			m.lists.selected[m.lists.Cursor] = !m.lists.selected[m.lists.Cursor]
+			if m.lists.selected[m.lists.Cursor] {
+				m.lists.selectedCount += 1
+			} else {
+				m.lists.selectedCount -= 1
+			}
 		}
 	}
 

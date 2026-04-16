@@ -66,6 +66,7 @@ func initialModel() model {
 
 	ti := textinput.New()
 	ti.Placeholder = "Enter Command..."
+	ti.SetWidth(256)
 	// TODO: Refactor this to be function
 	tiStyle := ti.Styles()
 	tiStyle.Cursor.Color = lipgloss.Color("205")

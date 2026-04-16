@@ -13,6 +13,13 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	if keyPress == "ctrl+c" {
 		return m, tea.Quit
 	}
+	if keyPress == "ctrl+q" {
+		m.lists.command.SetValue("")
+		m.lists.command.Blur()
+		m.lists.focusedTab = -1
+		m.state = titleView
+		return m, nil
+	}
 	newIndex := m.lists.focusedTab
 	if keyPress == "tab" {
 		newIndex += 1
@@ -40,6 +47,8 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		m.lists.focusedTab = newIndex
 		return m, nil
 	}
+
+	// Explorer
 	if m.lists.focusedTab == -1 {
 		switch keyPress {
 		case "up":
@@ -54,6 +63,24 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 				m.lists.selectedCount -= 1
 			}
 		}
+	}
+
+	// Command
+	if m.lists.focusedTab == -2 {
+		switch keyPress {
+		case "enter":
+			switch strings.Split(m.lists.command.Value(), " ")[0] {
+			case "!exit", "!back", "!home", "!quit":
+				m.lists.command.SetValue("")
+				m.lists.command.Blur()
+				m.lists.focusedTab = -1
+				m.state = titleView
+			}
+			return m, nil
+		}
+		var cmd tea.Cmd
+		m.lists.command, cmd = m.lists.command.Update(msg)
+		return m, cmd
 	}
 
 	return m, nil

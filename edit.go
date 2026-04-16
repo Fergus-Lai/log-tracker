@@ -22,8 +22,7 @@ func (m *editModel) render(width int, height int, files []File) tea.View {
 		} else {
 			fmt.Fprintf(&b, "[ ] %s  ", f.Name)
 		}
-		b.WriteRune('\n')
-		b.WriteRune('\n')
+		b.WriteString("\n\n")
 	}
 
 	if m.selectedIndex == len(files) {

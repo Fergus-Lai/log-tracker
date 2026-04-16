@@ -8,3 +8,7 @@ func listLine(s string, isActive bool) string {
 	}
 	return (blurredStyle.Render(fmt.Sprintf("[ ] %s", s))) + "\n\n"
 }
+
+func positiveMod(x int, n int) int {
+	return ((x % n) + n) % n
+}

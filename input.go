@@ -57,11 +57,14 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg, isEdit bool) (tea.Mod
 		return m, nil
 	case "ctrl+c":
 		return m, tea.Quit
-	case "enter", "down", "tab":
+	case "down", "tab":
+		inputMod.focusIndex = positiveMod(inputMod.focusIndex+1, len(inputMod.inputs)+1)
+		movedIndex = true
+	case "enter":
 		if inputMod.focusIndex < len(inputMod.inputs) {
 			inputMod.focusIndex++
 			movedIndex = true
-		} else if keyPress != "down" {
+		} else {
 			if inputMod.inProgress {
 				return m, nil
 			}
@@ -87,22 +90,19 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg, isEdit bool) (tea.Mod
 			}
 		}
 	case "shift+tab", "up":
-		if inputMod.focusIndex > 0 {
-			inputMod.focusIndex--
-			movedIndex = true
-		}
+		inputMod.focusIndex = positiveMod(inputMod.focusIndex-1, len(inputMod.inputs)+1)
+		movedIndex = true
 	case "left":
 		if inputMod.focusIndex == len(inputMod.inputs) {
-			n := len(inputMod.choices)
-			inputMod.activeIndex = ((inputMod.activeIndex-1)%n + n) % n
+			inputMod.activeIndex = positiveMod(inputMod.activeIndex-1, len(inputMod.choices))
 		}
 	case "right":
 		if inputMod.focusIndex == len(inputMod.inputs) {
-			n := len(inputMod.choices)
-			inputMod.activeIndex = ((inputMod.activeIndex+1)%n + n) % n
+			inputMod.activeIndex = positiveMod(inputMod.activeIndex+1, len(inputMod.choices))
 		}
 	}
 	if movedIndex {
+		inputMod.activeIndex = 0
 		cmds := make([]tea.Cmd, len(inputMod.inputs))
 		for i := 0; i <= len(inputMod.inputs)-1; i++ {
 			if i == inputMod.focusIndex {

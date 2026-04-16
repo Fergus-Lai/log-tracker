@@ -248,3 +248,37 @@ func (m *inputModel) pasteCurrent() {
 	}
 	m.inputs[m.focusIndex].SetValue(m.inputs[m.focusIndex].Value() + text)
 }
+
+func initialInputModel(length int) []textinput.Model {
+	var t textinput.Model
+	inputs := make([]textinput.Model, length)
+	for i := range length {
+		t = textinput.New()
+		t.CharLimit = 256
+		t.SetWidth(256)
+
+		s := t.Styles()
+		s.Cursor.Color = lipgloss.Color("205")
+		s.Focused.Prompt = focusedStyle
+		s.Focused.Text = focusedStyle
+		s.Blurred.Prompt = blurredStyle
+		s.Blurred.Text = blurredStyle
+		t.SetStyles(s)
+
+		switch i {
+		case 0:
+			t.Placeholder = "Name"
+			t.CharLimit = 64
+			t.Focus()
+		case 1:
+			t.Placeholder = "Folder Path"
+		case 2:
+			t.Placeholder = "File Matching String"
+		case 3:
+			t.Placeholder = "Log Format Matcher (Regex)"
+		}
+
+		inputs[i] = t
+	}
+	return inputs
+}

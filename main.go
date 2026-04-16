@@ -52,64 +52,8 @@ func initialModel() model {
 		},
 	}
 
-	var t textinput.Model
-	for i := range m.edit.input.inputs {
-		t = textinput.New()
-		t.CharLimit = 256
-		t.SetWidth(256)
-
-		s := t.Styles()
-		s.Cursor.Color = lipgloss.Color("205")
-		s.Focused.Prompt = focusedStyle
-		s.Focused.Text = focusedStyle
-		s.Blurred.Prompt = blurredStyle
-		s.Focused.Text = focusedStyle
-		t.SetStyles(s)
-
-		switch i {
-		case 0:
-			t.Placeholder = "Name"
-			t.CharLimit = 64
-			t.Focus()
-		case 1:
-			t.Placeholder = "Folder Path"
-		case 2:
-			t.Placeholder = "File Matching String"
-		case 3:
-			t.Placeholder = "Log Format Matcher (Regex)"
-		}
-
-		m.edit.input.inputs[i] = t
-	}
-
-	for i := range m.input.inputs {
-		t = textinput.New()
-		t.CharLimit = 256
-		t.SetWidth(256)
-
-		s := t.Styles()
-		s.Cursor.Color = lipgloss.Color("205")
-		s.Focused.Prompt = focusedStyle
-		s.Focused.Text = focusedStyle
-		s.Blurred.Prompt = blurredStyle
-		s.Focused.Text = focusedStyle
-		t.SetStyles(s)
-
-		switch i {
-		case 0:
-			t.Placeholder = "Name"
-			t.CharLimit = 64
-			t.Focus()
-		case 1:
-			t.Placeholder = "Folder Path"
-		case 2:
-			t.Placeholder = "File Matching String"
-		case 3:
-			t.Placeholder = "Log Format Matcher (Regex)"
-		}
-
-		m.input.inputs[i] = t
-	}
+	m.edit.input.inputs = initialInputModel(len(m.edit.input.inputs))
+	m.input.inputs = initialInputModel(len(m.input.inputs))
 	return m
 }
 

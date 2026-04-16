@@ -45,15 +45,19 @@ func (m *model) handleTitleInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		case "Quit":
 			return m, tea.Quit
 		case "View Logs":
-			if len(m.lists.lists) > 0 {
+			if len(m.files) > 0 {
 				m.state = listView
 			} else {
-				m.title.errorMessage = "No file tracked, please add file"
+				m.title.errorMessage = "No profile found, please create profile"
 			}
 		case "Add Log Profile":
 			m.state = inputView
 		case "Edit Log Profile":
-			m.state = editView
+			if len(m.files) > 0 {
+				m.state = editView
+			} else {
+				m.title.errorMessage = "No profile found, please create profile"
+			}
 		}
 	}
 	return m, nil

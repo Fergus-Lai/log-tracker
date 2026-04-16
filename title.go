@@ -34,14 +34,10 @@ func (m *model) handleTitleInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 
 	case "up", "shift+tab":
-		if m.state == titleView && m.title.selected > 0 {
-			m.title.selected--
-		}
+		m.title.selected = positiveMod(m.title.selected-1, len(m.title.choices))
 
 	case "down", "tab":
-		if m.state == titleView && m.title.selected < len(m.title.choices)-1 {
-			m.title.selected++
-		}
+		m.title.selected = positiveMod(m.title.selected+1, len(m.title.choices))
 
 	case "enter", "space":
 		m.title.errorMessage = ""

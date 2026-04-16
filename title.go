@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
@@ -13,13 +12,7 @@ func (m *titleModel) render(width int, height int) tea.View {
 	s.WriteString(boldStyle.Render("Log Viewer by Fergus"))
 	s.WriteString("\n\n")
 	for i, choice := range m.choices {
-		if m.selected == i {
-			s.WriteString(focusedStyle.Render(fmt.Sprintf("[x] %s", choice)))
-		} else {
-			fmt.Fprintf(&s, "[ ] %s", choice)
-		}
-		s.WriteString("\n\n")
-
+		s.WriteString(listLine(choice, m.selected == i))
 	}
 
 	if m.errorMessage != "" {

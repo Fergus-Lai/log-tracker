@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,19 +16,10 @@ func (m *editModel) render(width int, height int, files []File) tea.View {
 	b.WriteRune('\n')
 
 	for i, f := range files {
-		if m.selectedIndex == i {
-			b.WriteString(focusedStyle.Render(fmt.Sprintf("[x] %s  ", f.Name)))
-		} else {
-			fmt.Fprintf(&b, "[ ] %s  ", f.Name)
-		}
-		b.WriteString("\n\n")
+		b.WriteString(listLine(f.Name, m.selectedIndex == i))
 	}
 
-	if m.selectedIndex == len(files) {
-		b.WriteString(focusedStyle.Render(fmt.Sprintf("[x] %s  ", "Return to home screen")))
-	} else {
-		fmt.Fprintf(&b, "[ ] %s  ", "Return to home screen")
-	}
+	b.WriteString(listLine("Return to home screen", m.selectedIndex == len(files)))
 
 	centeredContent := lipgloss.Place(
 		width,

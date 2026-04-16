@@ -117,11 +117,11 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg, isEdit bool) (tea.Mod
 	return m, cmd
 }
 
-func (m *inputModel) render(width int, height int, isEdit bool) tea.View {
+func (m *inputModel) render(width int, height int, name string, isEdit bool) tea.View {
 	var b strings.Builder
 	var c *tea.Cursor
 	if isEdit {
-		b.WriteString(boldStyle.Render("Edit Log Profile \n"))
+		b.WriteString(boldStyle.Render(fmt.Sprintf("Edit Log Profile - %s\n", name)))
 	} else {
 		b.WriteString(boldStyle.Render("Create Log Profile \n"))
 	}

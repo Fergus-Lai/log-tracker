@@ -188,10 +188,10 @@ func (m model) View() tea.View {
 	case listView:
 		return tea.NewView("List")
 	case inputView:
-		return m.input.render(m.width, m.height, false)
+		return m.input.render(m.width, m.height, "", false)
 	case editView:
 		if m.edit.editMode {
-			return m.edit.input.render(m.width, m.height, true)
+			return m.edit.input.render(m.width, m.height, m.files[m.edit.selectedIndex].Name, true)
 		}
 		return m.edit.render(m.width, m.height, m.files)
 	default:

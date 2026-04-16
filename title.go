@@ -9,26 +9,28 @@ import (
 )
 
 func (m *titleModel) render(width int, height int) tea.View {
-	s := titleStyle.Render("Log Viewer by Fergus") + "\n\n"
-	var optionLine strings.Builder
+	var s strings.Builder
+	s.WriteString(boldStyle.Render("Log Viewer by Fergus"))
+	s.WriteString("\n\n")
 	for i, choice := range m.choices {
 		if m.selected == i {
-			optionLine.WriteString(focusedStyle.Render(fmt.Sprintf("[x] %s  ", choice)))
+			s.WriteString(focusedStyle.Render(fmt.Sprintf("[x] %s", choice)))
 		} else {
-			fmt.Fprintf(&optionLine, "[ ] %s  ", choice)
+			fmt.Fprintf(&s, "[ ] %s", choice)
 		}
+		s.WriteString("\n\n")
 
 	}
-	s += optionLine.String() + "\n\n"
+
 	if m.errorMessage != "" {
-		s += errorStyle.Render(m.errorMessage)
+		s.WriteString(errorStyle.Render(m.errorMessage))
 	}
 	centeredContent := lipgloss.Place(
 		width,  // The total width of your terminal
 		height, // The total height of your terminal
-		lipgloss.Center,
-		lipgloss.Center,
-		s,
+		lipgloss.Top,
+		lipgloss.Left,
+		s.String(),
 	)
 	return tea.NewView(centeredContent)
 }
@@ -38,12 +40,12 @@ func (m *model) handleTitleInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	case "ctrl+c", "q":
 		return m, tea.Quit
 
-	case "left":
+	case "up", "shift+tab":
 		if m.state == titleView && m.title.selected > 0 {
 			m.title.selected--
 		}
 
-	case "right":
+	case "down", "tab":
 		if m.state == titleView && m.title.selected < len(m.title.choices)-1 {
 			m.title.selected++
 		}

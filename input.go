@@ -12,8 +12,6 @@ import (
 	textinput "charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	lipgloss "charm.land/lipgloss/v2"
-
-	"github.com/atotto/clipboard"
 )
 
 func (m *inputModel) updateInputs(msg tea.Msg) tea.Cmd {
@@ -52,9 +50,6 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg, isEdit bool) (tea.Mod
 		inputMod = &m.input
 	}
 	switch keyPress {
-	case "ctrl+v":
-		inputMod.pasteCurrent()
-		return m, nil
 	case "ctrl+c":
 		return m, tea.Quit
 	case "down", "tab":
@@ -171,7 +166,6 @@ func (m *inputModel) render(width int, height int, spinner string, name string, 
 	)
 	v := tea.NewView(centeredContent)
 	v.Cursor = c
-	v.MouseMode = tea.MouseModeCellMotion
 	return v
 }
 
@@ -240,14 +234,6 @@ func (m *model) saveInput(name string, folderPath string, fileNameMatcher string
 
 func convertSafeName(s string) string {
 	return strings.ReplaceAll(strings.ToLower(s), " ", "_")
-}
-
-func (m *inputModel) pasteCurrent() {
-	text, err := clipboard.ReadAll()
-	if err != nil {
-		return
-	}
-	m.inputs[m.focusIndex].SetValue(m.inputs[m.focusIndex].Value() + text)
 }
 
 func initialInputModel(length int) []textinput.Model {

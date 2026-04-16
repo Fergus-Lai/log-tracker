@@ -114,6 +114,21 @@ func (m model) Init() tea.Cmd {
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		switch m.state {
+		case titleView:
+			return m.handleTitleInput(msg)
+		case inputView:
+			return m.handleInputViewUpdate(msg, false)
+		case editView:
+			if m.edit.editMode {
+				return m.handleInputViewUpdate(msg, true)
+			}
+			return m.handleEditViewUpdate(msg)
+		case listView:
+			return m.handleListInput(msg)
+		}
+		return m, nil
 	case dataLoadedMsg:
 		if msg.err != nil {
 			// Error handle
@@ -134,6 +149,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.state = titleView
 		}
 		return m, nil
+	case tea.PasteMsg:
+		var inputMod *textinput.Model
+		switch m.state {
+		case listView:
+			inputMod = &m.lists.command
+		case inputView:
+			inputMod = &m.input.inputs[m.input.focusIndex]
+		case editView:
+			if m.edit.editMode {
+				inputMod = &m.edit.input.inputs[m.edit.input.focusIndex]
+			}
+		}
+		if inputMod == nil {
+			return m, nil
+		}
+		updated, cmd := inputMod.Update(msg)
+		*inputMod = updated
+
+		return m, cmd
 	case saveErrMsg:
 		var inputMod *inputModel
 		if msg.isEdit {
@@ -161,26 +195,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		return m, nil
-	case tea.MouseClickMsg:
-		if msg.Button == tea.MouseRight && m.state == inputView {
-			m.input.pasteCurrent()
-		}
-		return m, nil
-	case tea.KeyPressMsg:
-		switch m.state {
-		case titleView:
-			return m.handleTitleInput(msg)
-		case inputView:
-			return m.handleInputViewUpdate(msg, false)
-		case editView:
-			if m.edit.editMode {
-				return m.handleInputViewUpdate(msg, true)
-			}
-			return m.handleEditViewUpdate(msg)
-		case listView:
-			return m.handleListInput(msg)
-		}
 		return m, nil
 	default:
 		var cmd tea.Cmd

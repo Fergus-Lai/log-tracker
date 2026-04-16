@@ -64,17 +64,7 @@ func initialModel() model {
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	m.spinner = s
 
-	ti := textinput.New()
-	ti.Placeholder = "Enter Command..."
-	ti.SetWidth(256)
-	// TODO: Refactor this to be function
-	tiStyle := ti.Styles()
-	tiStyle.Cursor.Color = lipgloss.Color("205")
-	tiStyle.Focused.Prompt = focusedStyle
-	tiStyle.Focused.Text = focusedStyle
-	tiStyle.Blurred.Prompt = blurredStyle
-	tiStyle.Blurred.Text = blurredStyle
-	m.lists.command = ti
+	m.lists.command = initTextInput("Enter Command...")
 
 	m.edit.input.inputs = initialInputModel(len(m.edit.input.inputs))
 	m.input.inputs = initialInputModel(len(m.input.inputs))

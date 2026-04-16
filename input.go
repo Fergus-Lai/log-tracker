@@ -268,15 +268,15 @@ func initialInputModel(length int) []textinput.Model {
 
 		switch i {
 		case 0:
-			t.Placeholder = "Name"
+			t = initTextInput("Name")
 			t.CharLimit = 64
 			t.Focus()
 		case 1:
-			t.Placeholder = "Folder Path"
+			t = initTextInput("Folder Path")
 		case 2:
-			t.Placeholder = "File Matching String"
+			t = initTextInput("File Matching String")
 		case 3:
-			t.Placeholder = "Log Format Matcher (Regex)"
+			t = initTextInput("Log Format Matcher (Regex)")
 		}
 
 		inputs[i] = t

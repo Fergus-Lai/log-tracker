@@ -13,7 +13,7 @@ func (m *titleModel) render(width int, height int) tea.View {
 	var optionLine strings.Builder
 	for i, choice := range m.choices {
 		if m.selected == i {
-			optionLine.WriteString(boldStyle.Render(fmt.Sprintf("[x] %s  ", choice)))
+			optionLine.WriteString(focusedStyle.Render(fmt.Sprintf("[x] %s  ", choice)))
 		} else {
 			fmt.Fprintf(&optionLine, "[ ] %s  ", choice)
 		}

@@ -18,7 +18,7 @@ func (m *editModel) render(width int, height int, files []File) tea.View {
 
 	for i, f := range files {
 		if m.selectedIndex == i {
-			b.WriteString(boldStyle.Render(fmt.Sprintf("[x] %s  ", f.Name)))
+			b.WriteString(focusedStyle.Render(fmt.Sprintf("[x] %s  ", f.Name)))
 		} else {
 			fmt.Fprintf(&b, "[ ] %s  ", f.Name)
 		}
@@ -27,7 +27,7 @@ func (m *editModel) render(width int, height int, files []File) tea.View {
 	}
 
 	if m.selectedIndex == len(files) {
-		b.WriteString(boldStyle.Render(fmt.Sprintf("[x] %s  ", "Return to home screen")))
+		b.WriteString(focusedStyle.Render(fmt.Sprintf("[x] %s  ", "Return to home screen")))
 	} else {
 		fmt.Fprintf(&b, "[ ] %s  ", "Return to home screen")
 	}

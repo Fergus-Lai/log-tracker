@@ -59,18 +59,23 @@ func (m *listsModel) render(width int, height int, files []File) tea.View {
 	explorerStyle := lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder(), false, true, false, false).
 		Width(width / 5).
-		Height(height).
-		MaxHeight(height).
-		MarginLeft(2)
+		Height(height - 2).
+		MaxHeight(height - 1).
+		PaddingLeft(2)
 
 	rightStyle := lipgloss.NewStyle().
 		Width(4 * width / 5).
-		Height(height).
-		MarginLeft(2)
+		Height(height - 2).
+		PaddingLeft(2)
+
+	commandStyle := lipgloss.NewStyle().Border(lipgloss.NormalBorder(), true, false, false, false).Width(width)
 
 	// Render components into their styled containers
 	explorer := explorerStyle.Render(m.renderExplorer(files))
 	right := rightStyle.Render("Right Content")
+	command := commandStyle.Render(m.command.View())
 
-	return tea.NewView(lipgloss.JoinHorizontal(lipgloss.Top, explorer, right))
+	content := lipgloss.JoinHorizontal(lipgloss.Top, explorer, right)
+
+	return tea.NewView(lipgloss.JoinVertical(lipgloss.Top, content, command))
 }

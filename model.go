@@ -33,6 +33,7 @@ type listsModel struct {
 	focusedTab int // -1 for explorer
 	Filter     Filter
 	Cursor     int
+	command    textinput.Model
 }
 
 type inputModel struct {

@@ -29,13 +29,10 @@ type model struct {
 }
 
 type listsModel struct {
-	lists         []listModel
-	selectedIndex uint
-}
-
-type listModel struct {
-	Filter Filter
-	Cursor int
+	selected   []bool
+	focusedTab int // -1 for explorer
+	Filter     Filter
+	Cursor     int
 }
 
 type inputModel struct {

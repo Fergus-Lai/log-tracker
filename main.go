@@ -32,8 +32,14 @@ func initialModel() model {
 			selected: 0,
 		},
 		lists: listsModel{
-			lists:         []listModel{},
-			selectedIndex: 0,
+			Cursor: 0,
+			Filter: Filter{
+				searchString: "",
+				regexOn:      false,
+				level:        "",
+			},
+			selected:   []bool{},
+			focusedTab: -1,
 		},
 		input: inputModel{
 			inputs:      make([]textinput.Model, 4),
@@ -112,18 +118,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 		m.files = msg.files
-		listModels := make([]listModel, len(m.files))
-		for i := range listModels {
-			listModels[i] = listModel{
-				Cursor: 0,
-				Filter: Filter{
-					searchString: "",
-					regexOn:      false,
-					level:        "",
-				},
-			}
-		}
-		m.lists.lists = listModels
+		m.lists.selected = make([]bool, len(msg.files))
 		return m, nil
 	case fileSavedMsg:
 		if msg.isEdit {
@@ -132,14 +127,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.edit.editMode = false
 		} else {
 			m.files = append(m.files, msg.file)
-			m.lists.lists = append(m.lists.lists, listModel{
-				Cursor: 0,
-				Filter: Filter{
-					searchString: "",
-					regexOn:      false,
-					level:        "",
-				},
-			})
+			m.lists.selected = append(m.lists.selected, false)
 			m.input.resetInput()
 			m.state = titleView
 		}
@@ -165,6 +153,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.edit.input.inProgress = false
 		m.edit.input.resetInput()
 		m.files = append(m.files[:msg.index], m.files[msg.index+1:]...)
+		m.lists.selected = append(m.lists.selected[:msg.index], m.lists.selected[msg.index+1:]...)
 		m.edit.editMode = false
 		return m, nil
 	case tea.WindowSizeMsg:
@@ -188,7 +177,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m.handleEditViewUpdate(msg)
 		case listView:
-			return m, nil
+			return m.handleListInput(msg)
 		}
 		return m, nil
 	default:
@@ -203,7 +192,7 @@ func (m model) View() tea.View {
 	case titleView:
 		return m.title.render(m.width, m.height)
 	case listView:
-		return tea.NewView("List")
+		return m.lists.render(m.width, m.height, m.files)
 	case inputView:
 		return m.input.render(m.width, m.height, m.spinner.View(), "", false)
 	case editView:

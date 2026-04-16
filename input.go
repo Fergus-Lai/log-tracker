@@ -129,8 +129,7 @@ func (m *inputModel) render(width int, height int, name string, isEdit bool) tea
 	for i, in := range m.inputs {
 		b.WriteString(m.inputs[i].View())
 		if i < len(m.inputs)-1 {
-			b.WriteRune('\n')
-			b.WriteRune('\n')
+			b.WriteString("\n\n")
 		}
 		if in.Focused() {
 			c = in.Cursor()
@@ -148,6 +147,8 @@ func (m *inputModel) render(width int, height int, name string, isEdit bool) tea
 		}
 		b.WriteString(style.Render(fmt.Sprintf("  [%s]", button)))
 	}
+
+	b.WriteString("\n\n")
 
 	if m.errorMessage != "" {
 		b.WriteString(errorStyle.Render(m.errorMessage))

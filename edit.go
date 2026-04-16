@@ -32,8 +32,8 @@ func (m *editModel) render(width int, height int, files []File) tea.View {
 	}
 
 	centeredContent := lipgloss.Place(
-		width,  // The total width of your terminal
-		height, // The total height of your terminal
+		width,
+		height,
 		lipgloss.Top,
 		lipgloss.Left,
 		b.String(),

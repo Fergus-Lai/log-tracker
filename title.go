@@ -26,8 +26,8 @@ func (m *titleModel) render(width int, height int) tea.View {
 		s.WriteString(errorStyle.Render(m.errorMessage))
 	}
 	centeredContent := lipgloss.Place(
-		width,  // The total width of your terminal
-		height, // The total height of your terminal
+		width,
+		height,
 		lipgloss.Top,
 		lipgloss.Left,
 		s.String(),

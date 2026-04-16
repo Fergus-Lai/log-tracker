@@ -16,18 +16,12 @@ import (
 
 var (
 	boldStyle    = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA"))
-	titleStyle   = boldStyle.AlignHorizontal(lipgloss.Center)
 	errorStyle   = lipgloss.NewStyle().Foreground((lipgloss.Color("#ED4337")))
 	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
 )
 
 var DATA_PATH = filepath.Join(".", "data")
-
-// These imports will be used later in the tutorial. If you save the file
-// now, Go might complain they are unused, but that's fine.
-// You may also need to run `go mod tidy` to download bubbletea and its
-// dependencies.
 
 func initialModel() model {
 	m := model{

@@ -37,13 +37,10 @@ func (m *model) handleEditViewUpdate(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	case "ctrl+c", "q":
 		return m, tea.Quit
 	case "up", "shift+tab":
-		if m.edit.selectedIndex > 0 {
-			m.edit.selectedIndex--
-		}
+		m.edit.selectedIndex = positiveMod(m.edit.selectedIndex-1, len(m.files)+1)
 	case "down", "tab":
-		if m.edit.selectedIndex < len(m.files) {
-			m.edit.selectedIndex++
-		}
+		m.edit.selectedIndex = positiveMod(m.edit.selectedIndex+1, len(m.files)+1)
+
 	case "enter":
 		if m.edit.selectedIndex == len(m.files) {
 			m.state = titleView

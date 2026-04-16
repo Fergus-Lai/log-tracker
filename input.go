@@ -117,7 +117,7 @@ func (m *model) handleInputViewUpdate(msg tea.KeyPressMsg, isEdit bool) (tea.Mod
 	return m, cmd
 }
 
-func (m *inputModel) render(width int, height int, name string, isEdit bool) tea.View {
+func (m *inputModel) render(width int, height int, spinner string, name string, isEdit bool) tea.View {
 	var b strings.Builder
 	var c *tea.Cursor
 	if isEdit {
@@ -155,11 +155,11 @@ func (m *inputModel) render(width int, height int, name string, isEdit bool) tea
 	}
 
 	if m.inProgress && m.choices[m.activeIndex] == "Save" {
-		b.WriteString("Saving...\n")
+		fmt.Fprintf(&b, "%s Saving...\n", spinner)
 	}
 
 	if m.inProgress && m.choices[m.activeIndex] == "Delete" {
-		b.WriteString("Deleting...\n")
+		fmt.Fprintf(&b, "%s Deleting...\n", spinner)
 	}
 
 	centeredContent := lipgloss.Place(

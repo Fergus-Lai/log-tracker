@@ -3,6 +3,7 @@ package main
 import (
 	"time"
 
+	spinner "charm.land/bubbles/v2/spinner"
 	textinput "charm.land/bubbles/v2/textinput"
 )
 
@@ -16,14 +17,15 @@ const (
 )
 
 type model struct {
-	state  ViewState
-	lists  listsModel
-	input  inputModel
-	title  titleModel
-	edit   editModel
-	width  int
-	height int
-	files  []File
+	state   ViewState
+	lists   listsModel
+	input   inputModel
+	title   titleModel
+	edit    editModel
+	width   int
+	height  int
+	files   []File
+	spinner spinner.Model
 }
 
 type listsModel struct {

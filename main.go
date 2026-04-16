@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 
+	spinner "charm.land/bubbles/v2/spinner"
 	textinput "charm.land/bubbles/v2/textinput"
 	tea "charm.land/bubbletea/v2"
 	lipgloss "charm.land/lipgloss/v2"
@@ -52,6 +53,11 @@ func initialModel() model {
 		},
 	}
 
+	s := spinner.New()
+	s.Spinner = spinner.Dot
+	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	m.spinner = s
+
 	m.edit.input.inputs = initialInputModel(len(m.edit.input.inputs))
 	m.input.inputs = initialInputModel(len(m.input.inputs))
 	return m
@@ -92,7 +98,10 @@ func LoadData() tea.Msg {
 }
 
 func (m model) Init() tea.Cmd {
-	return LoadData
+	return tea.Batch(
+		LoadData,
+		m.spinner.Tick,
+	)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -115,6 +124,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		}
 		m.lists.lists = listModels
+		return m, nil
 	case fileSavedMsg:
 		if msg.isEdit {
 			m.files[m.edit.selectedIndex] = msg.file
@@ -160,10 +170,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+		return m, nil
 	case tea.MouseClickMsg:
 		if msg.Button == tea.MouseRight && m.state == inputView {
 			m.input.pasteCurrent()
 		}
+		return m, nil
 	case tea.KeyPressMsg:
 		switch m.state {
 		case titleView:
@@ -175,10 +187,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m.handleInputViewUpdate(msg, true)
 			}
 			return m.handleEditViewUpdate(msg)
+		case listView:
+			return m, nil
 		}
-
+		return m, nil
+	default:
+		var cmd tea.Cmd
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
 	}
-	return m, nil
 }
 
 func (m model) View() tea.View {
@@ -188,14 +205,14 @@ func (m model) View() tea.View {
 	case listView:
 		return tea.NewView("List")
 	case inputView:
-		return m.input.render(m.width, m.height, "", false)
+		return m.input.render(m.width, m.height, m.spinner.View(), "", false)
 	case editView:
 		if m.edit.editMode {
-			return m.edit.input.render(m.width, m.height, m.files[m.edit.selectedIndex].Name, true)
+			return m.edit.input.render(m.width, m.height, m.spinner.View(), m.files[m.edit.selectedIndex].Name, true)
 		}
 		return m.edit.render(m.width, m.height, m.files)
 	default:
-		return tea.NewView("Loading...")
+		return tea.NewView(fmt.Sprintf("%s Loading...", m.spinner.View()))
 	}
 }
 

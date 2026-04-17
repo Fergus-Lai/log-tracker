@@ -31,7 +31,7 @@ type model struct {
 type listsModel struct {
 	selected      []bool
 	selectedCount int
-	focusedTab    int // -1 for explorer
+	focusedTab    int
 	Filter        Filter
 	Cursor        int
 	command       textinput.Model

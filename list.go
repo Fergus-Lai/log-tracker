@@ -16,40 +16,35 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	if keyPress == "ctrl+q" {
 		m.lists.command.SetValue("")
 		m.lists.command.Blur()
-		m.lists.focusedTab = -1
+		m.lists.focusedTab = 1
 		m.state = titleView
 		return m, nil
 	}
 	newIndex := m.lists.focusedTab
 	if keyPress == "tab" {
-		newIndex += 1
-		if newIndex >= m.lists.selectedCount {
-			newIndex = -2
-		}
+		newIndex++
 	}
 	if keyPress == "shift+tab" {
-		newIndex -= 1
-		if newIndex > -2 {
-			newIndex = m.lists.selectedCount - 1
-		}
+		newIndex--
 	}
 	if m.lists.focusedTab != newIndex {
 		// Reset
 		m.lists.Cursor = 0
-		if m.lists.focusedTab == -2 {
+		if m.lists.focusedTab == 1 {
 			m.lists.command.Blur()
 		}
 
+		m.lists.focusedTab = newIndex % (len(m.files) + 2)
+
 		// Set New
-		if newIndex == -2 {
+		if m.lists.focusedTab == 1 {
 			m.lists.command.Focus()
 		}
-		m.lists.focusedTab = newIndex
 		return m, nil
 	}
 
 	// Explorer
-	if m.lists.focusedTab == -1 {
+	if m.lists.focusedTab == 0 {
 		switch keyPress {
 		case "up":
 			m.lists.Cursor = positiveMod(m.lists.Cursor-1, len(m.lists.selected))
@@ -66,14 +61,14 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	}
 
 	// Command
-	if m.lists.focusedTab == -2 {
+	if m.lists.focusedTab == 1 {
 		switch keyPress {
 		case "enter":
 			switch strings.Split(m.lists.command.Value(), " ")[0] {
 			case "!exit", "!back", "!home", "!quit":
 				m.lists.command.SetValue("")
 				m.lists.command.Blur()
-				m.lists.focusedTab = -1
+				m.lists.focusedTab = 0
 				m.state = titleView
 			}
 			return m, nil
@@ -95,14 +90,14 @@ func (m *listsModel) renderExplorer(files []File) string {
 		style := blurredStyle
 		if m.selected[i] {
 			cursor = "[x]"
-			if i == m.focusedTab {
+			if i == m.focusedTab-2 {
 				style = focusedStyle
 			} else {
 				style = boldStyle
 			}
 		}
 
-		if m.focusedTab == -1 {
+		if m.focusedTab == 0 {
 			if m.Cursor == i {
 				style = focusedStyle
 			}

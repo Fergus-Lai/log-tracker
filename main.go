@@ -39,7 +39,7 @@ func initialModel() model {
 				level:        "",
 			},
 			selected:   []bool{},
-			focusedTab: -1,
+			focusedTab: 0,
 		},
 		input: inputModel{
 			inputs:      make([]textinput.Model, 4),

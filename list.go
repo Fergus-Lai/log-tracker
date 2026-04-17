@@ -34,7 +34,7 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			m.lists.command.Blur()
 		}
 
-		m.lists.focusedTab = newIndex % (len(m.files) + 2)
+		m.lists.focusedTab = newIndex % (m.lists.selectedCount + 2)
 
 		// Set New
 		if m.lists.focusedTab == 1 {

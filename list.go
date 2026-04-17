@@ -8,6 +8,8 @@ import (
 	lipgloss "charm.land/lipgloss/v2"
 )
 
+const FOCUSED_OFFSET = 2
+
 func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	keyPress := msg.String()
 	if keyPress == "ctrl+c" {
@@ -34,7 +36,7 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			m.lists.command.Blur()
 		}
 
-		m.lists.focusedTab = newIndex % (m.lists.selectedCount + 2)
+		m.lists.focusedTab = newIndex % (m.lists.selectedCount + FOCUSED_OFFSET)
 
 		// Set New
 		if m.lists.focusedTab == 1 {
@@ -90,7 +92,7 @@ func (m *listsModel) renderExplorer(files []File) string {
 		style := blurredStyle
 		if m.selected[i] {
 			cursor = "[x]"
-			if i == m.focusedTab-2 {
+			if i == m.focusedTab-FOCUSED_OFFSET {
 				style = focusedStyle
 			} else {
 				style = boldStyle

@@ -89,16 +89,18 @@ func (m *listsModel) renderExplorer(files []File) string {
 	var b strings.Builder
 	b.WriteString(boldStyle.Render("Explorer"))
 	b.WriteString("\n\n")
+	j := 0
 	for i, f := range files {
 		cursor := "[ ]"
 		style := blurredStyle
 		if m.selected[i] {
 			cursor = "[x]"
-			if i == m.focusedTab-FOCUSED_OFFSET {
-				style = focusedStyle
-			} else {
+			if j == m.focusedTab-FOCUSED_OFFSET {
 				style = boldStyle
+			} else {
+				style = blurredStyle.Bold(true)
 			}
+			j++
 		}
 
 		if m.focusedTab == EXPLORER_TAB {

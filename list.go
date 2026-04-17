@@ -20,9 +20,13 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	if keyPress == "ctrl+q" {
 		m.lists.command.SetValue("")
 		m.lists.command.Blur()
-		m.lists.focusedTab = 1
+		m.lists.focusedTab = EXPLORER_TAB
 		m.state = titleView
 		return m, nil
+	}
+	if keyPress == "ctrl+r" {
+		m.lists.focusedTab = COMMAND_TAB
+		m.lists.command.Focus()
 	}
 	newIndex := m.lists.focusedTab
 	if keyPress == "tab" {

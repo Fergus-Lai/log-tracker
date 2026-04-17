@@ -50,7 +50,7 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 			m.lists.Cursor = positiveMod(m.lists.Cursor-1, len(m.lists.selected))
 		case "down":
 			m.lists.Cursor = positiveMod(m.lists.Cursor+1, len(m.lists.selected))
-		case "enter":
+		case "enter", "space":
 			m.lists.selected[m.lists.Cursor] = !m.lists.selected[m.lists.Cursor]
 			if m.lists.selected[m.lists.Cursor] {
 				m.lists.selectedCount += 1

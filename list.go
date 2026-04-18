@@ -129,7 +129,11 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 
 func (m *listsModel) renderExplorer(files []File) string {
 	var b strings.Builder
-	b.WriteString(boldStyle.Render("Explorer"))
+	titleStyle := boldStyle
+	if m.focusedTab == EXPLORER_TAB {
+		titleStyle = focusedStyle
+	}
+	b.WriteString(titleStyle.Render("Explorer"))
 	b.WriteString("\n\n")
 	j := 0
 	for i, f := range files {
@@ -160,7 +164,11 @@ func (m *listsModel) renderExplorer(files []File) string {
 func (m *listsModel) renderFilter(width int) string {
 	cellLeftStyle := boldStyle
 
-	titleCellStyle := boldStyle.Width(width)
+	titleStyle := boldStyle
+	if m.focusedTab == FILTER_TAB {
+		titleStyle = focusedStyle
+	}
+	titleCellStyle := titleStyle.Width(width)
 
 	var b strings.Builder
 

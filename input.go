@@ -240,29 +240,17 @@ func initialInputModel(length int) []textinput.Model {
 	var t textinput.Model
 	inputs := make([]textinput.Model, length)
 	for i := range length {
-		t = textinput.New()
-		t.CharLimit = 256
-		t.SetWidth(256)
-
-		s := t.Styles()
-		s.Cursor.Color = lipgloss.Color("205")
-		s.Focused.Prompt = focusedStyle
-		s.Focused.Text = focusedStyle
-		s.Blurred.Prompt = blurredStyle
-		s.Blurred.Text = blurredStyle
-		t.SetStyles(s)
-
 		switch i {
 		case 0:
-			t = initTextInput("Name")
+			t = initTextInput("Name", focusedStyle, noStyle)
 			t.CharLimit = 64
 			t.Focus()
 		case 1:
-			t = initTextInput("Folder Path")
+			t = initTextInput("Folder Path", focusedStyle, noStyle)
 		case 2:
-			t = initTextInput("File Matching String")
+			t = initTextInput("File Matching String", focusedStyle, noStyle)
 		case 3:
-			t = initTextInput("Log Format Matcher (Regex)")
+			t = initTextInput("Log Format Matcher (Regex)", focusedStyle, noStyle)
 		}
 
 		inputs[i] = t

@@ -20,6 +20,7 @@ var (
 	errorStyle   = lipgloss.NewStyle().Foreground((lipgloss.Color("#ED4337")))
 	focusedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	blurredStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	noStyle      = lipgloss.NewStyle()
 )
 
 var DATA_PATH = filepath.Join(".", "data")
@@ -33,10 +34,8 @@ func initialModel() model {
 		},
 		lists: listsModel{
 			Cursor: 0,
-			Filter: Filter{
-				searchString: "",
-				regexOn:      false,
-				level:        "",
+			Filter: filterModel{
+				inputs: make([]textinput.Model, 2),
 			},
 			selected:   []bool{},
 			focusedTab: 0,
@@ -61,10 +60,12 @@ func initialModel() model {
 
 	s := spinner.New()
 	s.Spinner = spinner.Dot
-	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+	s.Style = focusedStyle
 	m.spinner = s
 
-	m.lists.command = initTextInput("Enter Command...")
+	m.lists.command = initTextInput("Enter Command...", focusedStyle, blurredStyle)
+	m.lists.Filter.inputs[0] = initTextInput("Level", focusedStyle, noStyle)
+	m.lists.Filter.inputs[1] = initTextInput("Search String", focusedStyle, noStyle)
 
 	m.edit.input.inputs = initialInputModel(len(m.edit.input.inputs))
 	m.input.inputs = initialInputModel(len(m.input.inputs))

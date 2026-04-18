@@ -18,16 +18,16 @@ func positiveMod(x int, n int) int {
 	return ((x % n) + n) % n
 }
 
-func initTextInput(placeholder string) textinput.Model {
+func initTextInput(placeholder string, focusStyle lipgloss.Style, blurStyle lipgloss.Style) textinput.Model {
 	t := textinput.New()
 	t.Placeholder = placeholder
 	t.SetWidth(256)
 	s := t.Styles()
 	s.Cursor.Color = lipgloss.Color("205")
-	s.Focused.Prompt = focusedStyle
-	s.Focused.Text = focusedStyle
-	s.Blurred.Prompt = blurredStyle
-	s.Blurred.Text = blurredStyle
+	s.Focused.Prompt = focusStyle
+	s.Focused.Text = focusStyle
+	s.Blurred.Prompt = blurStyle
+	s.Blurred.Text = blurStyle
 	t.SetStyles(s)
 	return t
 }

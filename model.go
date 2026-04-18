@@ -32,9 +32,14 @@ type listsModel struct {
 	selected      []bool
 	selectedCount int
 	focusedTab    int
-	Filter        Filter
+	Filter        filterModel
 	Cursor        int
 	command       textinput.Model
+}
+
+type filterModel struct {
+	regexOn bool
+	inputs  []textinput.Model
 }
 
 type inputModel struct {
@@ -70,12 +75,6 @@ type RowData struct {
 	level     string
 	timeStamp time.Time
 	message   string
-}
-
-type Filter struct {
-	searchString string
-	regexOn      bool
-	level        string
 }
 
 type dataLoadedMsg struct {

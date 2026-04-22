@@ -28,6 +28,7 @@ var DATA_PATH = filepath.Join(".", "data")
 func initialModel() model {
 	m := model{
 		state: 0,
+		files: *NewFilesMap(),
 		title: titleModel{
 			choices:  []string{"Add Log Profile", "Edit Log Profile", "View Logs", "Quit"},
 			selected: 0,
@@ -135,16 +136,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			// Error handle
 			return m, tea.Quit
 		}
-		m.files = msg.files
+		for _, v := range msg.files {
+			m.files.AddFile(v)
+		}
 		m.lists.selected = make([]bool, len(msg.files))
 		return m, nil
 	case fileSavedMsg:
 		if msg.isEdit {
-			m.files[m.edit.selectedIndex] = msg.file
+			target := m.files.slice[m.edit.selectedIndex]
+			delete(m.files.data, target)
+			m.files.slice[m.edit.selectedIndex] = msg.file.Name
+			m.files.data[msg.file.Name] = msg.file
 			m.edit.input.resetInput()
 			m.edit.editMode = false
 		} else {
-			m.files = append(m.files, msg.file)
+			m.files.AddFile(msg.file)
 			m.lists.selected = append(m.lists.selected, false)
 			m.input.resetInput()
 			m.state = titleView
@@ -189,7 +195,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case fileDeletedMsg:
 		m.edit.input.inProgress = false
 		m.edit.input.resetInput()
-		m.files = append(m.files[:msg.index], m.files[msg.index+1:]...)
+		m.files.RemoveFile(msg.index)
 		m.lists.selected = append(m.lists.selected[:msg.index], m.lists.selected[msg.index+1:]...)
 		m.edit.editMode = false
 		return m, nil
@@ -214,7 +220,7 @@ func (m model) View() tea.View {
 		return m.input.render(m.width, m.height, m.spinner.View(), "", false)
 	case editView:
 		if m.edit.editMode {
-			return m.edit.input.render(m.width, m.height, m.spinner.View(), m.files[m.edit.selectedIndex].Name, true)
+			return m.edit.input.render(m.width, m.height, m.spinner.View(), m.files.slice[m.edit.selectedIndex], true)
 		}
 		return m.edit.render(m.width, m.height, m.files)
 	default:

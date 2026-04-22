@@ -24,7 +24,7 @@ type model struct {
 	edit    editModel
 	width   int
 	height  int
-	files   []File
+	files   FilesMap
 	spinner spinner.Model
 }
 

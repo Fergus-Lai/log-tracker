@@ -1,7 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"slices"
 
 	textinput "charm.land/bubbles/v2/textinput"
 	lipgloss "charm.land/lipgloss/v2"
@@ -30,4 +32,36 @@ func initTextInput(placeholder string, focusStyle lipgloss.Style, blurStyle lipg
 	s.Blurred.Text = blurStyle
 	t.SetStyles(s)
 	return t
+}
+
+type FilesMap struct {
+	slice []string
+	data  map[string]File
+}
+
+func NewFilesMap() *FilesMap {
+	return &FilesMap{
+		slice: []string{},
+		data:  make(map[string]File),
+	}
+}
+
+func (m *FilesMap) AddFile(f File) error {
+	_, hasData := m.data[f.Name]
+	if hasData {
+		return errors.New("Duplicate name")
+	}
+	m.slice = append(m.slice, f.Name)
+	m.data[f.Name] = f
+	return nil
+}
+
+func (m *FilesMap) RemoveFile(i int) error {
+	_, hasData := m.data[m.slice[i]]
+	if !hasData {
+		return errors.New("File not found")
+	}
+	delete(m.data, m.slice[i])
+	m.slice = slices.Delete(m.slice, i, i+1)
+	return nil
 }

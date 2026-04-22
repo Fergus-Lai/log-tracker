@@ -182,8 +182,8 @@ func (m *model) saveInput(name string, folderPath string, fileNameMatcher string
 	return func() tea.Msg {
 		safeName := convertSafeName(name)
 
-		for i, f := range m.files {
-			if convertSafeName(f.Name) == safeName && (!isEdit || m.edit.selectedIndex != i) {
+		for i, f := range m.files.slice {
+			if convertSafeName(f) == safeName && (!isEdit || m.edit.selectedIndex != i) {
 				return saveErrMsg{
 					err:    errors.New("Duplicate Error"),
 					isEdit: isEdit,
@@ -205,8 +205,9 @@ func (m *model) saveInput(name string, folderPath string, fileNameMatcher string
 			}
 		}
 
-		if isEdit && m.files[m.edit.selectedIndex].Name != name {
-			err = os.Remove(filepath.Join(DATA_PATH, convertSafeName(m.files[m.edit.selectedIndex].Name)+".json"))
+		target := m.files.slice[m.edit.selectedIndex]
+		if isEdit && m.files.data[target].Name != name {
+			err = os.Remove(filepath.Join(DATA_PATH, convertSafeName(m.files.slice[m.edit.selectedIndex])+".json"))
 			if err != nil {
 				return saveErrMsg{
 					err,

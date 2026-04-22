@@ -45,7 +45,7 @@ func (m *model) handleTitleInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		case "Quit":
 			return m, tea.Quit
 		case "View Logs":
-			if len(m.files) > 0 {
+			if len(m.files.slice) > 0 {
 				m.state = listView
 			} else {
 				m.title.errorMessage = "No profile found, please create profile"
@@ -53,7 +53,7 @@ func (m *model) handleTitleInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 		case "Add Log Profile":
 			m.state = inputView
 		case "Edit Log Profile":
-			if len(m.files) > 0 {
+			if len(m.files.slice) > 0 {
 				m.state = editView
 			} else {
 				m.title.errorMessage = "No profile found, please create profile"

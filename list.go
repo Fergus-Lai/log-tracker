@@ -116,8 +116,11 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 				m.lists.command.Blur()
 				m.lists.focusedTab = EXPLORER_TAB
 				m.state = titleView
+				return m, nil
+			default:
+				m.lists.command.SetValue("")
+				return m, nil
 			}
-			return m, nil
 		}
 		var cmd tea.Cmd
 		m.lists.command, cmd = m.lists.command.Update(msg)
@@ -127,7 +130,7 @@ func (m model) handleListInput(msg tea.KeyPressMsg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *listsModel) renderExplorer(files []File) string {
+func (m *listsModel) renderExplorer(files FilesMap) string {
 	var b strings.Builder
 	titleStyle := boldStyle
 	if m.focusedTab == EXPLORER_TAB {
@@ -136,7 +139,7 @@ func (m *listsModel) renderExplorer(files []File) string {
 	b.WriteString(titleStyle.Render("Explorer"))
 	b.WriteString("\n\n")
 	j := 0
-	for i, f := range files {
+	for i, f := range files.slice {
 		cursor := "[ ]"
 		style := blurredStyle
 		if m.selected[i] {
@@ -155,7 +158,7 @@ func (m *listsModel) renderExplorer(files []File) string {
 			}
 		}
 
-		b.WriteString(style.Render(fmt.Sprintf("  %s %s", cursor, f.Name)))
+		b.WriteString(style.Render(fmt.Sprintf("  %s %s", cursor, f)))
 		b.WriteString("\n\n")
 	}
 	return b.String()
@@ -191,7 +194,7 @@ func (m *listsModel) renderFilter(width int) string {
 	return b.String()
 }
 
-func (m *listsModel) render(width int, height int, files []File) tea.View {
+func (m *listsModel) render(width int, height int, files FilesMap) tea.View {
 	explorerStyle := lipgloss.NewStyle().
 		Width(width / 4).
 		Height(2 * (height - 2) / 3).
